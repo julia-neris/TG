@@ -1,0 +1,261 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SinfonIA - Sistema de Transcrição Musical
+   Design System com tema musical elegante
+   Tons de roxo/violeta com detalhes dourados
+*/
+
+@layer base {
+  :root {
+    /* Tema claro com tons pasteis musicais */
+    /* #faedff (lavanda), #ffc7e1 (rosa), #fff6d1 (amarelo) */
+    /* Texto em #2b0047 (roxo escuro) */
+    --background: 280 100% 97.5%;
+    --foreground: 283 100% 14%;
+
+    --card: 280 100% 98%;
+    --card-foreground: 283 100% 14%;
+
+    --popover: 280 100% 99%;
+    --popover-foreground: 283 100% 14%;
+
+    /* Roxo principal - cor primária */
+    --primary: 270 60% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Rosa pastel - cor de destaque #ffc7e1 */
+    --secondary: 330 100% 89%;
+    --secondary-foreground: 283 100% 14%;
+
+    --muted: 280 60% 94%;
+    --muted-foreground: 283 80% 25%;
+
+    /* Rosa suave para acentos */
+    --accent: 330 80% 92%;
+    --accent-foreground: 283 100% 14%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 280 50% 90%;
+    --input: 280 50% 92%;
+    --ring: 270 60% 45%;
+
+    --radius: 0.75rem;
+
+    /* Cores customizadas para o tema musical */
+    --gold: 45 80% 50%;
+    --gold-light: 45 70% 70%;
+    --violet-dark: 283 100% 14%;
+    --violet-light: 280 100% 97%;
+    --rose-light: 330 100% 89%;
+    --yellow-light: 48 100% 91%;
+    --wave: 200 70% 50%;
+
+    --sidebar-background: 280 80% 96%;
+    --sidebar-foreground: 283 100% 14%;
+    --sidebar-primary: 270 60% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 330 70% 92%;
+    --sidebar-accent-foreground: 283 100% 14%;
+    --sidebar-border: 280 50% 90%;
+    --sidebar-ring: 270 60% 45%;
+  }
+
+  .dark {
+    /* Tema escuro elegante */
+    --background: 270 30% 8%;
+    --foreground: 270 10% 95%;
+
+    --card: 270 25% 12%;
+    --card-foreground: 270 10% 95%;
+
+    --popover: 270 25% 12%;
+    --popover-foreground: 270 10% 95%;
+
+    --primary: 270 55% 60%;
+    --primary-foreground: 270 30% 8%;
+
+    --secondary: 45 75% 55%;
+    --secondary-foreground: 270 30% 8%;
+
+    --muted: 270 20% 18%;
+    --muted-foreground: 270 15% 65%;
+
+    --accent: 280 35% 20%;
+    --accent-foreground: 270 10% 95%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 20% 20%;
+    --input: 270 20% 20%;
+    --ring: 270 55% 60%;
+
+    --gold: 45 75% 55%;
+    --gold-light: 45 60% 40%;
+    --violet-dark: 270 40% 50%;
+    --violet-light: 280 30% 15%;
+    --wave: 200 60% 55%;
+
+    --sidebar-background: 270 25% 10%;
+    --sidebar-foreground: 270 10% 95%;
+    --sidebar-primary: 270 55% 60%;
+    --sidebar-primary-foreground: 270 30% 8%;
+    --sidebar-accent: 280 30% 18%;
+    --sidebar-accent-foreground: 270 10% 95%;
+    --sidebar-border: 270 20% 18%;
+    --sidebar-ring: 270 55% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Gradiente pastel para light mode */
+  :root body {
+    background: linear-gradient(135deg, #faedff 0%, #ffe4f1 50%, #fff6d1 100%);
+    background-attachment: fixed;
+  }
+
+  /* Manter background sólido no dark mode */
+  .dark body {
+    background: hsl(var(--background));
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  /* Glassmorphism cards */
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-lg border border-border/50 shadow-xl;
+  }
+
+  /* Gradient backgrounds - pastel colors for light mode */
+  .gradient-musical {
+    background: linear-gradient(135deg, #faedff 0%, #ffc7e1 50%, #fff6d1 100%);
+  }
+
+  /* Dark mode: gradient with new colors */
+  .dark .gradient-musical {
+    background: linear-gradient(135deg, #4d1b6f 0%, #571584 50%, #daa520 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--accent) / 0.5) 100%);
+  }
+
+  /* Animated musical notes */
+  .floating-note {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .floating-note-delay {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  /* Pulse animation for recording */
+  .pulse-recording {
+    animation: pulse-record 1.5s ease-in-out infinite;
+  }
+
+  /* Wave animation */
+  .wave-animation {
+    animation: wave 2s ease-in-out infinite;
+  }
+
+  /* Glow effect */
+  .glow-primary {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 30px hsl(var(--gold) / 0.4);
+  }
+}
+
+@layer utilities {
+  /* Text gradient - pastel colors com maior saturação para visibilidade */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #c9a0ff 0%, #ff85c0 50%, #ffd966 100%);
+  }
+
+  /* Musical staff lines background */
+  .staff-lines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 20px,
+      hsl(var(--border)) 20px,
+      hsl(var(--border)) 21px
+    );
+  }
+}
+
+/* Keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-record {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.7);
+}
