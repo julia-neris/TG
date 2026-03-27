@@ -1,0 +1,27 @@
+# ⚠️ PyTorch é instalado separadamente no Dockerfile com a versão CPU-only.
+# NÃO adicione torch aqui para evitar conflito com o --index-url.
+
+# FastAPI + servidor ASGI
+fastapi>=0.104.0
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+pydantic>=2.0.0
+
+# Processamento de áudio
+librosa>=0.10.0
+numpy>=1.24.3
+scipy>=1.11.1
+soundfile>=0.12.1
+numba>=0.57.1
+
+# Separação de instrumentos (pesados, mas o HF Spaces aguenta)
+spleeter>=2.4.0
+demucs>=4.0.0
+
+# TensorFlow CPU (requerido pelo Spleeter)
+tensorflow-cpu>=2.13.0
+
+# Utilitários
+matplotlib>=3.7.2
+scikit-learn>=1.3.0
+sounddevice>=0.4.5
