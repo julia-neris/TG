@@ -9,13 +9,15 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Instala dependências Python (separado para aproveitar o cache do Docker)
 COPY requirements.txt .
 
-# PyTorch CPU-only (muito menor que a versão com CUDA)
-RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+# 1) PyTorch CPU-only primeiro (índice separado, muito menor que versão CUDA)
+RUN pip install --no-cache-dir \
+    torch==2.1.0 \
+    torchaudio==2.1.0 \
+    --index-url https://download.pytorch.org/whl/cpu
 
-# Demais dependências
+# 2) Demais dependências (sem spleeter/tensorflow para caber no timeout do HF)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia o código do backend
