@@ -1,0 +1,37 @@
+services:
+  # ================================================
+  # BACKEND - FastAPI (Python)
+  # ⚠️  ATENÇÃO: As dependências de ML (demucs, torch, tensorflow)
+  #    exigem bastante memória RAM. Recomendado: plano Standard (2GB RAM).
+  # ================================================
+  - type: web
+    name: sinfonia-backend
+    env: python
+    plan: standard  # Necessário devido aos modelos ML (~800MB RAM)
+    buildCommand: pip install -r requirements-render.txt
+    startCommand: cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ALLOWED_ORIGINS
+        # Após o deploy do frontend, cole a URL aqui (ex: https://sinfonia-frontend.onrender.com)
+        # Pode deixar * por enquanto e atualizar depois
+        value: "*"
+
+  # ================================================
+  # FRONTEND - React/Vite (Site Estático)
+  # ================================================
+  - type: web
+    name: sinfonia-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        # Cole aqui a URL do backend após ele ser criado no Render
+        # Ex: https://sinfonia-backend.onrender.com
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

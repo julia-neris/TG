@@ -56,9 +56,14 @@ async def startup_event():
     print("="*60 + "\n")
 
 # CORS para permitir requisições do frontend
+# Em produção, defina a variável ALLOWED_ORIGINS com a URL do frontend
+# Ex: ALLOWED_ORIGINS=https://sinfonia-frontend.onrender.com
+_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
+ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",")] if _origins_env != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especifique os domínios permitidos
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
