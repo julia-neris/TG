@@ -9,15 +9,11 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        # Cole aqui a URL do Hugging Face Space do backend
-        # Ex: https://julia-neris-sinfonia-backend.hf.space
+        value: https://JuliaNeris0017-sinfonia-backend.hf.space
         sync: false
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
 
-  # ⚠️ BACKEND NÃO ESTÁ AQUI
-  # O backend (FastAPI + Demucs + Spleeter) é deployado no
-  # Hugging Face Spaces (GRATUITO para ML).
-  # Veja a pasta huggingface/ para os arquivos do Space.
+  
