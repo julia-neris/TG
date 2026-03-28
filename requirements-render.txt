@@ -29,7 +29,6 @@ numba>=0.57.1
 sounddevice>=0.4.5
 
 # Separação de instrumentos
-spleeter>=2.4.0
 demucs>=4.0.0
 
 # Utilitários
