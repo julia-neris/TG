@@ -6,15 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
-// Fallback: Frequências base das notas musicais (oitava 4)
-const noteFrequencies: Record<string, number> = {
-  "C": 261.63, "C#": 277.18, "D": 293.66, "D#": 311.13,
-  "E": 329.63, "F": 349.23, "F#": 369.99, "G": 392.00,
-  "G#": 415.30, "A": 440.00, "A#": 466.16, "B": 493.88,
-};
-
-const durations = ["whole", "half", "quarter", "eighth"];
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,91 +15,87 @@ serve(async (req) => {
     const { audio, instrument, fileName } = await req.json();
     const PYTHON_API_URL = Deno.env.get("PYTHON_API_URL");
 
-    console.log(`Processando transcrição para: ${fileName}, instrumento: ${instrument}`);
-
-    // Tenta usar API Python com FFT/Librosa primeiro
-    if (PYTHON_API_URL) {
-      try {
-        console.log(`Chamando API Python em: ${PYTHON_API_URL}/transcribe`);
-        
-        const pythonResponse = await fetch(`${PYTHON_API_URL}/transcribe`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            audio,
-            instrument,
-            fileName,
-          }),
-        });
-
-        if (pythonResponse.ok) {
-          const pythonData = await pythonResponse.json();
-          
-          if (pythonData.success && pythonData.notes) {
-            console.log(`Transcrição Python FFT concluída: ${pythonData.notes.length} notas`);
-            console.log(`Características detectadas:`, pythonData.detected_characteristics);
-            
-            return new Response(JSON.stringify({
-              notes: pythonData.notes,
-              instrument: pythonData.instrument,
-              detected_characteristics: pythonData.detected_characteristics,
-              audio_info: pythonData.audio_info,
-              method: "fft_librosa"
-            }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-        } else {
-          const errorText = await pythonResponse.text();
-          console.error("Erro na API Python:", pythonResponse.status, errorText);
-        }
-      } catch (pythonError) {
-        console.error("Falha ao conectar com API Python:", pythonError);
-      }
-    } else {
-      console.log("PYTHON_API_URL não configurada");
+    if (!PYTHON_API_URL) {
+      return new Response(
+        JSON.stringify({ error: "PYTHON_API_URL não configurada no servidor." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Fallback: Gerar notas básicas se API Python não disponível
-    console.log("Usando fallback (simulação básica)...");
+    if (!audio) {
+      return new Response(
+        JSON.stringify({ error: "Campo 'audio' (base64) é obrigatório." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const fallbackNotes = [
-      { name: "C", octave: 4 },
-      { name: "E", octave: 4 },
-      { name: "G", octave: 4 },
-      { name: "C", octave: 5 },
-    ];
+    console.log(`Processando transcrição para: ${fileName}, instrumento: ${instrument}`);
 
-    const notes = fallbackNotes.map((note: any, index: number) => {
-      const baseFreq = noteFrequencies[note.name] || 440;
-      const octaveDiff = (note.octave || 4) - 4;
-      const frequency = baseFreq * Math.pow(2, octaveDiff);
+    // Converte base64 → Uint8Array (binário)
+    const base64 = (audio as string).replace(/^data:\w+\/\w+;base64,/, "");
+    const binaryStr = atob(base64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
 
-      return {
-        name: note.name,
-        octave: note.octave || 4,
-        frequency: Math.round(frequency * 100) / 100,
-        duration: durations[Math.floor(Math.random() * durations.length)],
-        position: index,
-        confidence: 0.7 + Math.random() * 0.3,
-      };
+    // Detecta extensão do arquivo
+    const ext = (fileName as string)?.split(".").pop()?.toLowerCase() || "mp3";
+    const mimeTypes: Record<string, string> = {
+      mp3: "audio/mpeg",
+      wav: "audio/wav",
+      flac: "audio/flac",
+      ogg: "audio/ogg",
+      m4a: "audio/mp4",
+      aac: "audio/aac",
+    };
+    const mimeType = mimeTypes[ext] || "audio/mpeg";
+
+    // Monta multipart/form-data — mesmo formato que o backend FastAPI espera
+    const formData = new FormData();
+    formData.append("file", new Blob([bytes], { type: mimeType }), fileName || `audio.${ext}`);
+    formData.append("instrument", instrument || "other");
+    formData.append("separate_instruments", "true");
+
+    console.log(`Chamando API Python em: ${PYTHON_API_URL}/transcribe`);
+
+    const pythonResponse = await fetch(`${PYTHON_API_URL}/transcribe`, {
+      method: "POST",
+      body: formData,
     });
 
-    console.log(`Fallback concluído: ${notes.length} notas`);
+    const responseText = await pythonResponse.text();
+    console.log(`Resposta do backend (${pythonResponse.status}):`, responseText.slice(0, 300));
 
-    return new Response(JSON.stringify({ 
-      notes, 
-      instrument,
-      method: "fallback_simulation",
-      warning: "API Python não configurada. Configure PYTHON_API_URL para análise FFT real.",
-      detected_characteristics: {
-        suggested_instrument: instrument,
-      }
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (!pythonResponse.ok) {
+      return new Response(
+        JSON.stringify({ error: `Backend retornou ${pythonResponse.status}: ${responseText}` }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const pythonData = JSON.parse(responseText);
+
+    // Normaliza o formato das notas para o frontend
+    const notes = (pythonData.notes || []).map((n: any) => ({
+      name: n.note?.replace(/\d+$/, "") || n.name || "C",
+      octave: parseInt(n.note?.match(/(\d+)$/)?.[1] || n.octave || "4"),
+      frequency: n.frequency || 440,
+      duration: n.duration || 0.5,
+      position: n.start_time || 0,
+      confidence: n.intensity || 0.8,
+    }));
+
+    return new Response(
+      JSON.stringify({
+        notes,
+        instrument: pythonData.instrument || instrument,
+        total_notes: notes.length,
+        method: "hf_demucs_librosa",
+        success: true,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
 
   } catch (error: unknown) {
     console.error("Erro:", error);
