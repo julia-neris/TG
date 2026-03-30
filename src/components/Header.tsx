@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, LogIn } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,7 +18,10 @@ const Header = ({ onLoadTranscription }: HeaderProps) => {
   const { t } = useLanguage();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const logoSrc = resolvedTheme === "dark" ? "/sinfonia-logo-dark.png" : "/sinfonia-logo.png";
 
   const handleSignOut = async () => {
     await signOut();
@@ -31,7 +35,7 @@ const Header = ({ onLoadTranscription }: HeaderProps) => {
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img
-              src="/sinfonia-logo.png"
+              src={logoSrc}
               alt="Sinfonia"
               className="h-20 w-auto transition-transform group-hover:scale-105"
             />
