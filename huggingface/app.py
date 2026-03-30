@@ -14,6 +14,8 @@ import shutil
 import tempfile
 from enum import Enum
 
+import threading
+
 from transcriber import MusicTranscriber
 from instrument_separator import InstrumentSeparator, preload_models, get_system_info
 from pitch_detector import PitchDetector
@@ -33,27 +35,31 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     """
-    Pré-carrega modelos de ML no startup para evitar cold-start.
-    Reduz tempo da primeira transcrição de ~30-50s para ~10-20s.
+    Inicia pré-carregamento de modelos em background para não bloquear
+    o healthcheck do HF Space (modelos são ~800MB, demoram 30-60s).
     """
     print("\n" + "="*60)
     print("🎵 INICIANDO SINFONIA API - TRANSCRIPTOR MUSICAL")
     print("="*60 + "\n")
-    
-    # Pré-carrega modelo Demucs (o mais pesado, ~800MB)
-    preload_models(["htdemucs"])
-    
-    # Mostra informações do sistema
-    info = get_system_info()
-    print("\n📊 INFORMAÇÕES DO SISTEMA:")
-    print(f"   • Demucs disponível: {'✓' if info['demucs_available'] else '✗'}")
-    print(f"   • Spleeter disponível: {'✓' if info['spleeter_available'] else '✗'}")
-    print(f"   • GPU disponível: {'✓ ' + str(info.get('gpu_name', '')) if info['gpu_available'] else '✗ (usando CPU)'}")
-    print(f"   • Dispositivo: {info['device']}")
-    print(f"   • Modelos em cache: {info['cached_models']}")
-    print("\n" + "="*60)
-    print("✓ SERVIDOR PRONTO PARA TRANSCRIÇÕES")
-    print("="*60 + "\n")
+
+    def _background_preload():
+        try:
+            preload_models(["htdemucs"])
+            info = get_system_info()
+            print("\n📊 INFORMAÇÕES DO SISTEMA:")
+            print(f"   • Demucs disponível: {'✓' if info['demucs_available'] else '✗'}")
+            print(f"   • GPU disponível: {'✓ ' + str(info.get('gpu_name', '')) if info['gpu_available'] else '✗ (usando CPU)'}")
+            print(f"   • Dispositivo: {info['device']}")
+            print(f"   • Modelos em cache: {info['cached_models']}")
+            print("\n" + "="*60)
+            print("✓ MODELOS PRONTOS PARA TRANSCRIÇÕES")
+            print("="*60 + "\n")
+        except Exception as e:
+            print(f"⚠ Erro no pré-carregamento de modelos: {e}")
+
+    # Executa em background — não bloqueia o startup/healthcheck
+    threading.Thread(target=_background_preload, daemon=True).start()
+    print("✓ SERVIDOR ONLINE — modelos sendo carregados em background\n")
 
 # CORS para permitir requisições do frontend
 # Em produção, defina a variável ALLOWED_ORIGINS com a URL do frontend

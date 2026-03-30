@@ -15,13 +15,14 @@ import time
 # Tenta importar Demucs (preferido)
 try:
     import torch
+    import torchaudio
     import demucs.separate
     from demucs.pretrained import get_model
-    from demucs.audio import AudioFile, save_audio
     DEMUCS_AVAILABLE = True
 except ImportError:
     DEMUCS_AVAILABLE = False
     torch = None
+    torchaudio = None
 
 # Fallback para Spleeter
 try:
@@ -230,13 +231,17 @@ class InstrumentSeparator:
             load_time = time.time() - start_time
             print(f"⏱ Modelo pronto em {load_time:.2f}s")
             
-            # Carrega áudio
+            # Carrega áudio com torchaudio (compatível com demucs 4.x)
             audio_start = time.time()
-            wav = AudioFile(audio_path).read(
-                streams=0,
-                samplerate=model.samplerate,
-                channels=model.audio_channels
-            )
+            wav, orig_sr = torchaudio.load(audio_path)
+            # Resample se necessário
+            if orig_sr != model.samplerate:
+                wav = torchaudio.functional.resample(wav, orig_sr, model.samplerate)
+            # Ajusta canais
+            if wav.shape[0] == 1 and model.audio_channels == 2:
+                wav = wav.expand(2, -1)
+            elif wav.shape[0] > model.audio_channels:
+                wav = wav[:model.audio_channels]
             print(f"⏱ Áudio carregado em {time.time() - audio_start:.2f}s")
             
             # Move áudio para mesmo dispositivo do modelo
