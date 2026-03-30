@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Music, Menu, X, LogOut, LogIn } from "lucide-react";
+import { Menu, X, LogOut, LogIn } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,14 +29,12 @@ const Header = ({ onLoadTranscription }: HeaderProps) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="relative">
-              <Music className="h-8 w-8 text-primary transition-transform group-hover:scale-110" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-secondary rounded-full animate-pulse-soft" />
-            </div>
-            <span className="text-2xl font-serif font-bold text-gradient">
-              SinfonIA
-            </span>
+          <Link to="/" className="flex items-center group">
+            <img
+              src="/sinfonia-logo.png"
+              alt="Sinfonia"
+              className="h-12 w-auto transition-transform group-hover:scale-105"
+            />
           </Link>
 
           {/* Desktop Navigation */}
